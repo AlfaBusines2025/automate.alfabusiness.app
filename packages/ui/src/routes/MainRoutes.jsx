@@ -1,36 +1,26 @@
 import { lazy } from 'react'
-
-// project imports
-import MainLayout from '@/layout/MainLayout'
 import Loadable from '@/ui-component/loading/Loadable'
+import ProtectedMainLayout from './ProtectedMainLayout'
 
 // chatflows routing
 const Chatflows = Loadable(lazy(() => import('@/views/chatflows')))
-
 // agents routing
 const Agentflows = Loadable(lazy(() => import('@/views/agentflows')))
-
 // marketplaces routing
 const Marketplaces = Loadable(lazy(() => import('@/views/marketplaces')))
-
 // apikey routing
 const APIKey = Loadable(lazy(() => import('@/views/apikey')))
-
 // tools routing
 const Tools = Loadable(lazy(() => import('@/views/tools')))
-
 // assistants routing
 const Assistants = Loadable(lazy(() => import('@/views/assistants')))
 const OpenAIAssistantLayout = Loadable(lazy(() => import('@/views/assistants/openai/OpenAIAssistantLayout')))
 const CustomAssistantLayout = Loadable(lazy(() => import('@/views/assistants/custom/CustomAssistantLayout')))
 const CustomAssistantConfigurePreview = Loadable(lazy(() => import('@/views/assistants/custom/CustomAssistantConfigurePreview')))
-
 // credentials routing
 const Credentials = Loadable(lazy(() => import('@/views/credentials')))
-
 // variables routing
 const Variables = Loadable(lazy(() => import('@/views/variables')))
-
 // documents routing
 const Documents = Loadable(lazy(() => import('@/views/docstore')))
 const DocumentStoreDetail = Loadable(lazy(() => import('@/views/docstore/DocumentStoreDetail')))
@@ -39,11 +29,9 @@ const LoaderConfigPreviewChunks = Loadable(lazy(() => import('@/views/docstore/L
 const VectorStoreConfigure = Loadable(lazy(() => import('@/views/docstore/VectorStoreConfigure')))
 const VectorStoreQuery = Loadable(lazy(() => import('@/views/docstore/VectorStoreQuery')))
 
-// ==============================|| MAIN ROUTING ||============================== //
-
 const MainRoutes = {
     path: '/',
-    element: <MainLayout />,
+    element: <ProtectedMainLayout />,
     children: [
         {
             path: '/',

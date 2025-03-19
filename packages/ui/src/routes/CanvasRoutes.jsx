@@ -1,20 +1,15 @@
 import { lazy } from 'react'
-
-// project imports
 import Loadable from '@/ui-component/loading/Loadable'
-import MinimalLayout from '@/layout/MinimalLayout'
+import ProtectedMinimalLayout from './ProtectedMinimalLayout'
 
 // canvas routing
-const Canvas = Loadable(lazy(() => import('@/views/canvas')))
 const ProtectedCanvas = Loadable(lazy(() => import('@/views/canvas/ProtectedCanvas')))
-
+const Canvas = Loadable(lazy(() => import('@/views/canvas')))
 const MarketplaceCanvas = Loadable(lazy(() => import('@/views/marketplaces/MarketplaceCanvas')))
-
-// ==============================|| CANVAS ROUTING ||============================== //
 
 const CanvasRoutes = {
     path: '/',
-    element: <MinimalLayout />,
+    element: <ProtectedMinimalLayout />,
     children: [
         {
             path: '/canvas',
