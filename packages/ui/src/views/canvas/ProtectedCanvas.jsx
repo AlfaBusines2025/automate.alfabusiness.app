@@ -12,8 +12,8 @@ const getCookie = (name) => {
 }
 
 const ProtectedCanvas = () => {
-    // Extraemos automateId del path usando useParams
-    const { automateId } = useParams()
+    // Extraemos 'id' del path y lo renombramos a automateId
+    const { id: automateId } = useParams()
     console.log('automateId:', automateId) // cgl: verifica el automateId obtenido
 
     // Obtenemos vendorUid desde las cookies (asegúrate que la cookie se llame "vendorUid")
