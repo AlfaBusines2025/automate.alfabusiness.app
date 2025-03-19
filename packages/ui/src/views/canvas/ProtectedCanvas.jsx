@@ -16,9 +16,14 @@ const ProtectedCanvas = () => {
     const { id: automateId } = useParams()
     console.log('automateId:', automateId) // cgl: verifica el automateId obtenido
 
-    // Obtenemos vendorUid desde las cookies (asegúrate que la cookie se llame "vendorUid")
+    // Obtenemos vendorUid y userUid desde las cookies
     const vendorUid = getCookie('vendorUid')
+    const userUid = getCookie('userUid')
     console.log('vendorUid:', vendorUid) // cgl: verifica el vendorUid obtenido
+    console.log('userUid:', userUid) // cgl: verifica el userUid obtenido
+
+    // Si no se encuentra userUid, se asigna "0"
+    const actualUserUid = userUid ? userUid : '0'
 
     const [authorized, setAuthorized] = useState(false)
     const [loading, setLoading] = useState(true)
@@ -33,7 +38,7 @@ const ProtectedCanvas = () => {
             return
         }
 
-        const url = `https://crm.alfabusiness.app/api/${vendorUid}/vendor-settings-automate?automate_id=${automateId}`
+        const url = `https://crm.alfabusiness.app/api/${vendorUid}/vendor-settings-automate?automate_id=${automateId}&user_uid=${actualUserUid}`
         console.log('Fetch URL:', url) // cgl: muestra la URL que se va a consumir
 
         fetch(url)
@@ -55,7 +60,7 @@ const ProtectedCanvas = () => {
                 setError(err.message || 'Error al validar la autenticación.')
                 setLoading(false)
             })
-    }, [vendorUid, automateId])
+    }, [vendorUid, automateId, actualUserUid])
 
     if (loading) return <div>Cargando...</div>
     if (error || !authorized) return <div>Acceso no autorizado</div>
