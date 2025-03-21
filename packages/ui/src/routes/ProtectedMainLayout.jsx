@@ -68,7 +68,10 @@ const ProtectedMainLayout = () => {
     console.log('cgl: Estado final - loading:', loading, 'error:', error, 'authorized:', authorized)
 
     if (loading) return <div>Cargando...</div>
-    if (error || !authorized) return <div>Acceso no autorizado</div>
+    if (error || !authorized) {
+        window.location.href = 'https://crm.alfabusiness.app/vendor-console'
+        return null
+    }
 
     return (
         <MainLayout>
