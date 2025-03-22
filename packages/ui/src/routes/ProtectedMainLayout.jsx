@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import MainLayout from '@/layout/MainLayout'
 
@@ -69,8 +69,8 @@ const ProtectedMainLayout = () => {
 
     if (loading) return <div>Cargando...</div>
     if (error || !authorized) {
-        window.location.href = 'https://crm.alfabusiness.app/vendor-console'
-        return null
+        // window.location.href = 'https://crm.alfabusiness.app/vendor-console'
+        return <div>Sin Acceso...</div>
     }
 
     return (

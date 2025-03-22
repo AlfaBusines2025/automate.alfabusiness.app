@@ -26,6 +26,7 @@ const StyledPopper = styled(Popper)({
     }
 })
 
+// Función auxiliar para cargar la lista de "modelos" (o lo que sea) mediante node-load-method
 const fetchList = async ({ name, nodeData }) => {
     const loadMethod = nodeData.inputParams.find((param) => param.name === name)?.loadMethod
     const username = localStorage.getItem('username')
@@ -40,13 +41,15 @@ const fetchList = async ({ name, nodeData }) => {
                 headers: { 'Content-type': 'application/json', 'x-request-from': 'internal' }
             }
         )
-        .then(async function (response) {
+        .then(function (response) {
             return response.data
         })
         .catch(function (error) {
             console.error(error)
+            return []
         })
-    return lists
+
+    return lists || []
 }
 
 export const AsyncDropdown = ({
@@ -61,16 +64,25 @@ export const AsyncDropdown = ({
     freeSolo = false,
     disableClearable = false
 }) => {
+    // ----------------------------------------------------------------
+    // 1. Leemos el modo oscuro (customization) y si esAdmin (admin)
+    // ----------------------------------------------------------------
     const customization = useSelector((state) => state.customization)
+    const { isAdmin } = useSelector((state) => state.admin)
 
     const [open, setOpen] = useState(false)
     const [options, setOptions] = useState([])
     const [loading, setLoading] = useState(false)
-    const findMatchingOptions = (options = [], value) => options.find((option) => option.name === value)
+
+    const findMatchingOptions = (list = [], val) => list.find((opt) => opt.name === val)
     const getDefaultOptionValue = () => ''
     const addNewOption = [{ label: '- Create New -', name: '-create-' }]
+
     let [internalValue, setInternalValue] = useState(value ?? 'choose an option')
 
+    // ----------------------------------------------------------------
+    // 2. Función para cargar credenciales del backend
+    // ----------------------------------------------------------------
     const fetchCredentialList = async () => {
         try {
             let names = ''
@@ -80,7 +92,7 @@ export const AsyncDropdown = ({
                 names = credentialNames[0]
             }
             const resp = await credentialsApi.getCredentialsByName(names)
-            if (resp.data) {
+            if (resp?.data) {
                 const returnList = []
                 for (let i = 0; i < resp.data.length; i += 1) {
                     const data = {
@@ -94,23 +106,48 @@ export const AsyncDropdown = ({
         } catch (error) {
             console.error(error)
         }
+        return []
     }
 
+    // ----------------------------------------------------------------
+    // 3. useEffect principal, recarga si isAdmin cambia
+    // ----------------------------------------------------------------
     useEffect(() => {
         setLoading(true)
         ;(async () => {
-            const fetchData = async () => {
-                let response = credentialNames.length ? await fetchCredentialList() : await fetchList({ name, nodeData })
-                if (isCreateNewOption) setOptions([...response, ...addNewOption])
-                else setOptions([...response])
-                setLoading(false)
+            let response = []
+
+            // (A) Si el nodo está configurado para credenciales (credentialNames)
+            if (credentialNames.length) {
+                // Validamos si es admin
+                if (isAdmin) {
+                    // Admin => cargamos todas las credenciales
+                    response = await fetchCredentialList()
+                } else {
+                    // No admin => no mostramos credenciales (array vacío)
+                    response = []
+                }
             }
-            fetchData()
+            // (B) Si no hay credentialNames => se llama a fetchList() normal
+            else {
+                response = await fetchList({ name, nodeData })
+            }
+
+            // Agregamos la opción de "Create New" si corresponde
+            if (isCreateNewOption) {
+                setOptions([...response, ...addNewOption])
+            } else {
+                setOptions([...response])
+            }
+
+            setLoading(false)
         })()
+        // Agrega isAdmin como dependencia si quieres que se recargue al cambiar
+    }, [isAdmin])
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
-
+    // ----------------------------------------------------------------
+    // 4. Render del componente
+    // ----------------------------------------------------------------
     return (
         <>
             <Autocomplete
@@ -121,21 +158,17 @@ export const AsyncDropdown = ({
                 size='small'
                 sx={{ mt: 1, width: '100%' }}
                 open={open}
-                onOpen={() => {
-                    setOpen(true)
-                }}
-                onClose={() => {
-                    setOpen(false)
-                }}
+                onOpen={() => setOpen(true)}
+                onClose={() => setOpen(false)}
                 options={options}
                 value={findMatchingOptions(options, internalValue) || getDefaultOptionValue()}
                 onChange={(e, selection) => {
-                    const value = selection ? selection.name : ''
-                    if (isCreateNewOption && value === '-create-') {
+                    const val = selection ? selection.name : ''
+                    if (isCreateNewOption && val === '-create-') {
                         onCreateNew()
                     } else {
-                        setInternalValue(value)
-                        onSelect(value)
+                        setInternalValue(val)
+                        onSelect(val)
                     }
                 }}
                 PopperComponent={StyledPopper}

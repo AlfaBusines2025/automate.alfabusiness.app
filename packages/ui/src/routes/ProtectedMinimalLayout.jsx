@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, useLocation, useParams } from 'react-router-dom'
 import MinimalLayout from '@/layout/MinimalLayout'
 
@@ -41,7 +41,7 @@ const ProtectedMinimalLayout = () => {
 
         // 3. Construimos la URL base
         let url = `https://crm.alfabusiness.app/api/${vendorUid}/vendor-settings-automate?user_uid=${userUid}`
-        
+
         // Si viene automateId (por path param o query param), lo agregamos:
         if (automateId) {
             url += `&automate_id=${automateId}`
@@ -77,8 +77,8 @@ const ProtectedMinimalLayout = () => {
 
     // Redirigir en lugar de mostrar mensaje
     if (error || !authorized) {
-        window.location.href = 'https://crm.alfabusiness.app/vendor-console'
-        return null
+        // window.location.href = 'https://crm.alfabusiness.app/vendor-console'
+        return <div>Sin Acceso...</div>
     }
 
     return (
