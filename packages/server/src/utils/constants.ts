@@ -17,7 +17,10 @@ export const WHITELIST_URLS = [
     '/api/v1/ping',
     '/api/v1/version',
     '/api/v1/attachments',
-    '/api/v1/metrics'
+    '/api/v1/metrics',
+    '/api/v1/credentials/user',        // sin barra final
+    '/api/v1/credentials/user/',       // con barra final
+
 ]
 
 export const OMIT_QUEUE_JOB_DATA = ['componentNodes', 'appDataSource', 'sseStreamer', 'telemetry', 'cachePool']

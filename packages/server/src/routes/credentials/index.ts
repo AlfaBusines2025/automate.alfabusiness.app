@@ -2,6 +2,8 @@ import express from 'express'
 import credentialsController from '../../controllers/credentials'
 const router = express.Router()
 
+router.get('/user', credentialsController.getAllCredentialsForUser) // <-- NUEVA RUTA
+
 // CREATE
 router.post('/', credentialsController.createCredential)
 
@@ -15,7 +17,7 @@ router.put(['/', '/:id'], credentialsController.updateCredential)
 // DELETE
 router.delete(['/', '/:id'], credentialsController.deleteCredentials)
 
-router.get('/user', credentialsController.getAllCredentialsForUser) // <-- NUEVA RUTA
+
 
 
 export default router

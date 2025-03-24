@@ -14,6 +14,14 @@ import credentialsApi from '@/api/credentials'
 // const
 import { baseURL } from '@/store/constant'
 
+// Función para extraer el valor de una cookie
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop().split(';').shift()
+    return null
+}
+
 const StyledPopper = styled(Popper)({
     boxShadow: '0px 8px 10px -5px rgb(0 0 0 / 20%), 0px 16px 24px 2px rgb(0 0 0 / 14%), 0px 6px 30px 5px rgb(0 0 0 / 12%)',
     borderRadius: '10px',
@@ -147,7 +155,9 @@ export const AsyncDropdown = ({
                     response = await fetchCredentialListAdmin(credentialNames)
                 } else {
                     // No admin => obtener SOLO credenciales de user
-                    const userUid = localStorage.getItem('userUid') // o cookie
+                    const userUidRaw = getCookie('userUid')
+                    const userUid = !userUidRaw || userUidRaw === 'null' ? '' : userUidRaw
+
                     response = await fetchCredentialListForUser(credentialNames, userUid)
                 }
             }

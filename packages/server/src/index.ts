@@ -163,6 +163,8 @@ export class App {
                 users: { [username]: password }
             })
             this.app.use(async (req, res, next) => {
+              
+
                 // Step 1: Check if the req path contains /api/v1 regardless of case
                 if (URL_CASE_INSENSITIVE_REGEX.test(req.path)) {
                     // Step 2: Check if the req path is case sensitive
@@ -190,6 +192,8 @@ export class App {
             })
         } else {
             this.app.use(async (req, res, next) => {
+              
+
                 // Step 1: Check if the req path contains /api/v1 regardless of case
                 if (URL_CASE_INSENSITIVE_REGEX.test(req.path)) {
                     // Step 2: Check if the req path is case sensitive
