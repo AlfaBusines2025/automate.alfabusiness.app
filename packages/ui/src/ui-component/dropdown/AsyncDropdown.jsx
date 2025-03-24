@@ -26,7 +26,7 @@ const StyledPopper = styled(Popper)({
     }
 })
 
-// Función auxiliar para cargar la lista de "modelos" (o lo que sea) mediante node-load-method
+// Esta función ya existía: llama al node-load-method
 const fetchList = async ({ name, nodeData }) => {
     const loadMethod = nodeData.inputParams.find((param) => param.name === name)?.loadMethod
     const username = localStorage.getItem('username')
@@ -41,15 +41,67 @@ const fetchList = async ({ name, nodeData }) => {
                 headers: { 'Content-type': 'application/json', 'x-request-from': 'internal' }
             }
         )
-        .then(function (response) {
-            return response.data
-        })
-        .catch(function (error) {
+        .then((response) => response.data)
+        .catch((error) => {
             console.error(error)
             return []
         })
 
     return lists || []
+}
+
+// NUEVO: si es admin, usa la existente getCredentialsByName
+const fetchCredentialListAdmin = async (credentialNames) => {
+    try {
+        let names = ''
+        if (credentialNames.length > 1) {
+            names = credentialNames.join('&credentialName=')
+        } else {
+            names = credentialNames[0]
+        }
+        const resp = await credentialsApi.getCredentialsByName(names) // dev: /credentials?credentialName=...
+        if (resp?.data) {
+            const returnList = []
+            for (let i = 0; i < resp.data.length; i++) {
+                returnList.push({
+                    label: resp.data[i].name,
+                    name: resp.data[i].id
+                })
+            }
+            return returnList
+        }
+    } catch (error) {
+        console.error(error)
+    }
+    return []
+}
+
+// NUEVO: si NO es admin, llama a getCredentialsByNameForUser
+const fetchCredentialListForUser = async (credentialNames, userUid) => {
+    try {
+        let names = ''
+        if (credentialNames.length > 1) {
+            names = credentialNames.join('&credentialName=')
+        } else {
+            names = credentialNames[0]
+        }
+        // llama a tu nuevo endpoint
+        const resp = await credentialsApi.getCredentialsByNameForUser(names, userUid)
+        //  (ej: GET /credentials/user?credentialName=names&userUid=???)
+        if (resp?.data) {
+            const returnList = []
+            for (let i = 0; i < resp.data.length; i++) {
+                returnList.push({
+                    label: resp.data[i].name,
+                    name: resp.data[i].id
+                })
+            }
+            return returnList
+        }
+    } catch (error) {
+        console.error(error)
+    }
+    return []
 }
 
 export const AsyncDropdown = ({
@@ -65,7 +117,7 @@ export const AsyncDropdown = ({
     disableClearable = false
 }) => {
     // ----------------------------------------------------------------
-    // 1. Leemos el modo oscuro (customization) y si esAdmin (admin)
+    // 1. Leemos customization (modo oscuro) y si esAdmin
     // ----------------------------------------------------------------
     const customization = useSelector((state) => state.customization)
     const { isAdmin } = useSelector((state) => state.admin)
@@ -81,35 +133,6 @@ export const AsyncDropdown = ({
     let [internalValue, setInternalValue] = useState(value ?? 'choose an option')
 
     // ----------------------------------------------------------------
-    // 2. Función para cargar credenciales del backend
-    // ----------------------------------------------------------------
-    const fetchCredentialList = async () => {
-        try {
-            let names = ''
-            if (credentialNames.length > 1) {
-                names = credentialNames.join('&credentialName=')
-            } else {
-                names = credentialNames[0]
-            }
-            const resp = await credentialsApi.getCredentialsByName(names)
-            if (resp?.data) {
-                const returnList = []
-                for (let i = 0; i < resp.data.length; i += 1) {
-                    const data = {
-                        label: resp.data[i].name,
-                        name: resp.data[i].id
-                    }
-                    returnList.push(data)
-                }
-                return returnList
-            }
-        } catch (error) {
-            console.error(error)
-        }
-        return []
-    }
-
-    // ----------------------------------------------------------------
     // 3. useEffect principal, recarga si isAdmin cambia
     // ----------------------------------------------------------------
     useEffect(() => {
@@ -117,23 +140,23 @@ export const AsyncDropdown = ({
         ;(async () => {
             let response = []
 
-            // (A) Si el nodo está configurado para credenciales (credentialNames)
-            if (credentialNames.length) {
-                // Validamos si es admin
+            // A) Si el nodo usa credenciales
+            if (credentialNames.length > 0) {
                 if (isAdmin) {
-                    // Admin => cargamos todas las credenciales
-                    response = await fetchCredentialList()
+                    // Admin => obtener TODAS las credenciales
+                    response = await fetchCredentialListAdmin(credentialNames)
                 } else {
-                    // No admin => no mostramos credenciales (array vacío)
-                    response = []
+                    // No admin => obtener SOLO credenciales de user
+                    const userUid = localStorage.getItem('userUid') // o cookie
+                    response = await fetchCredentialListForUser(credentialNames, userUid)
                 }
             }
-            // (B) Si no hay credentialNames => se llama a fetchList() normal
+            // B) Si NO hay credenciales => node-load-method normal
             else {
                 response = await fetchList({ name, nodeData })
             }
 
-            // Agregamos la opción de "Create New" si corresponde
+            // "Create New" al final si corresponde
             if (isCreateNewOption) {
                 setOptions([...response, ...addNewOption])
             } else {
@@ -142,11 +165,10 @@ export const AsyncDropdown = ({
 
             setLoading(false)
         })()
-        // Agrega isAdmin como dependencia si quieres que se recargue al cambiar
-    }, [isAdmin])
+    }, [isAdmin, credentialNames, nodeData, name, isCreateNewOption])
 
     // ----------------------------------------------------------------
-    // 4. Render del componente
+    // 4. Render
     // ----------------------------------------------------------------
     return (
         <>

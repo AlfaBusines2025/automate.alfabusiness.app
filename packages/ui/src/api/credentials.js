@@ -16,6 +16,11 @@ const updateCredential = (id, body) => client.put(`/credentials/${id}`, body)
 
 const deleteCredential = (id) => client.delete(`/credentials/${id}`)
 
+
+// NUEVA FUNCIÓN:
+const getCredentialsByNameForUser = (componentCredentialName, userUid) =>
+  client.get(`/credentials/user?credentialName=${componentCredentialName}&userUid=${userUid}`)
+
 export default {
     getAllCredentials,
     getCredentialsByName,
@@ -24,5 +29,6 @@ export default {
     getSpecificComponentCredential,
     createCredential,
     updateCredential,
-    deleteCredential
+    deleteCredential,
+    getCredentialsByNameForUser
 }

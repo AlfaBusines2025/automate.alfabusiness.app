@@ -15,4 +15,7 @@ router.put(['/', '/:id'], credentialsController.updateCredential)
 // DELETE
 router.delete(['/', '/:id'], credentialsController.deleteCredentials)
 
+router.get('/user', credentialsController.getAllCredentialsForUser) // <-- NUEVA RUTA
+
+
 export default router

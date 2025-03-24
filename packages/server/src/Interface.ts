@@ -107,6 +107,7 @@ export interface IAssistant {
 export interface ICredential {
     id: string
     name: string
+    userUid: string
     credentialName: string
     encryptedData: string
     updatedDate: Date

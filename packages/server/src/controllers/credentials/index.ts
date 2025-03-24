@@ -78,10 +78,25 @@ const updateCredential = async (req: Request, res: Response, next: NextFunction)
     }
 }
 
+
+const getAllCredentialsForUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+      // 1) Lee query: ?credentialName=..., ?userUid=...
+      const { credentialName, userUid } = req.query
+
+      // 2) Llama a un servicio en "services/credentials" que filtre por userUid
+      const apiResponse = await credentialsService.getAllCredentialsForUser(credentialName, userUid)
+      return res.json(apiResponse)
+  } catch (error) {
+      next(error)
+  }
+}
+
 export default {
     createCredential,
     deleteCredentials,
     getAllCredentials,
     getCredentialById,
-    updateCredential
+    updateCredential,
+    getAllCredentialsForUser
 }

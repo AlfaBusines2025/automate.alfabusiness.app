@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom'
 import PropTypes from 'prop-types'
 import { useState, useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux' // <-- IMPORT useSelector
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
 import parser from 'html-react-parser'
 
@@ -30,13 +30,22 @@ import { initializeDefaultNodeData } from '@/utils/genericHelper'
 import { baseURL, REDACTED_CREDENTIAL_VALUE } from '@/store/constant'
 import { HIDE_CANVAS_DIALOG, SHOW_CANVAS_DIALOG } from '@/store/actions'
 
+// Simple helper para leer cookie userUid (o podrías usar localStorage)
+function getCookie(name) {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) {
+        return parts.pop().split(';').shift()
+    }
+    return ''
+}
+
 const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setError }) => {
     const portalElement = document.getElementById('portal')
 
     const dispatch = useDispatch()
 
     // ==============================|| Snackbar ||============================== //
-
     useNotifier()
 
     const enqueueSnackbar = (...args) => dispatch(enqueueSnackbarAction(...args))
@@ -50,6 +59,9 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
     const [credentialData, setCredentialData] = useState({})
     const [componentCredential, setComponentCredential] = useState({})
 
+    // *** NUEVO: Leemos isAdmin desde Redux
+    const { isAdmin } = useSelector((state) => state.admin)
+
     useEffect(() => {
         if (getSpecificCredentialApi.data) {
             setCredential(getSpecificCredentialApi.data)
@@ -61,7 +73,6 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
             }
             getSpecificComponentCredentialApi.request(getSpecificCredentialApi.data.credentialName)
         }
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [getSpecificCredentialApi.data])
 
@@ -100,7 +111,6 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
             setCredentialData(defaultCredentialData)
             setComponentCredential(dialogProps.credentialComponent)
         }
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dialogProps])
 
@@ -112,11 +122,21 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
 
     const addNewCredential = async () => {
         try {
+            // Objeto que Flowise usará para crear la cred
             const obj = {
                 name,
                 credentialName: componentCredential.name,
                 plainDataObj: credentialData
             }
+
+            // *** NUEVO: si NO es admin => asignamos userUid
+            if (!isAdmin) {
+                const userUid = getCookie('userUid') // o localStorage.getItem('userUid')
+                if (userUid) {
+                    obj.userUid = userUid
+                }
+            }
+
             const createResp = await credentialsApi.createCredential(obj)
             if (createResp.data) {
                 enqueueSnackbar({
@@ -137,7 +157,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
             if (setError) setError(error)
             enqueueSnackbar({
                 message: `Failed to add new Credential: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                    typeof error.response?.data === 'object' ? error.response.data.message : error.response?.data
                 }`,
                 options: {
                     key: new Date().getTime() + Math.random(),
@@ -169,6 +189,10 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
             }
             if (Object.keys(plainDataObj).length) saveObj.plainDataObj = plainDataObj
 
+            // (Opcional) si no es admin y quieres mantener userUid en update:
+            // const userUid = getCookie('userUid')
+            // if (!isAdmin && userUid) saveObj.userUid = userUid
+
             const saveResp = await credentialsApi.updateCredential(credential.id, saveObj)
             if (saveResp.data) {
                 enqueueSnackbar({
@@ -189,7 +213,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
             if (setError) setError(error)
             enqueueSnackbar({
                 message: `Failed to save Credential: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                    typeof error.response?.data === 'object' ? error.response.data.message : error.response?.data
                 }`,
                 options: {
                     key: new Date().getTime() + Math.random(),
@@ -280,11 +304,9 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                         />
                     </Box>
                 )}
-                {componentCredential &&
-                    componentCredential.inputs &&
-                    componentCredential.inputs.map((inputParam, index) => (
-                        <CredentialInputHandler key={index} inputParam={inputParam} data={credentialData} />
-                    ))}
+                {componentCredential?.inputs?.map((inputParam, index) => (
+                    <CredentialInputHandler key={index} inputParam={inputParam} data={credentialData} />
+                ))}
             </DialogContent>
             <DialogActions>
                 <StyledButton

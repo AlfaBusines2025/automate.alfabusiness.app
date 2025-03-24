@@ -125,10 +125,43 @@ const updateCredential = async (credentialId: string, requestBody: any): Promise
     }
 }
 
+
+const getAllCredentialsForUser = async (paramCredentialName:any, userUid:any) => {
+  try {
+      const appServer = getRunningExpressApp()
+      let dbResponse = []
+
+      // Filtrar por credentialName & userUid
+      if (!paramCredentialName) {
+          // si no se pasa credentialName, trae todas las cred del user
+          dbResponse = await appServer.AppDataSource
+              .getRepository(Credential)
+              .findBy({ userUid })
+      } else {
+          // si se pasa credentialName
+          dbResponse = await appServer.AppDataSource
+              .getRepository(Credential)
+              .findBy({
+                  credentialName: paramCredentialName,
+                  userUid
+              })
+      }
+
+      return dbResponse
+  } catch (error) {
+      throw new InternalFlowiseError(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          `Error: credentialsService.getAllCredentialsForUser - ${getErrorMessage(error)}`
+      )
+  }
+}
+
+
 export default {
     createCredential,
     deleteCredentials,
     getAllCredentials,
     getCredentialById,
-    updateCredential
+    updateCredential,
+    getAllCredentialsForUser
 }
