@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import MainLayout from '@/layout/MainLayout'
+import { useDispatch } from 'react-redux'
 
 const getCookie = (name) => {
     const value = `; ${document.cookie}`
@@ -11,6 +12,7 @@ const getCookie = (name) => {
 
 const ProtectedMainLayout = () => {
     const location = useLocation()
+    const dispatch = useDispatch()
     const queryParams = new URLSearchParams(location.search)
     // automate_id ahora es opcional
     const automateId = queryParams.get('automate_id')
@@ -50,6 +52,14 @@ const ProtectedMainLayout = () => {
                 console.log('cgl: Datos recibidos:', data)
                 // Para las rutas generales se permite solo si is_admin es true
                 if (data.is_admin === true) {
+                    // DESPACHAMOS A REDUX
+                    dispatch({
+                        type: 'SET_ADMIN_STATE',
+                        payload: {
+                            is_admin: true,
+                            login_automate: data.login_automate
+                        }
+                    })
                     console.log('cgl: Autorizado (is_admin true)')
                     setAuthorized(true)
                 } else {

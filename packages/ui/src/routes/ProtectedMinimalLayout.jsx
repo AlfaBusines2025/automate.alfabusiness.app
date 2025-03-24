@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useLocation, useParams } from 'react-router-dom'
 import MinimalLayout from '@/layout/MinimalLayout'
+import { useDispatch } from 'react-redux'
 
 const getCookie = (name) => {
     const value = `; ${document.cookie}`
@@ -12,6 +13,7 @@ const getCookie = (name) => {
 const ProtectedMinimalLayout = () => {
     // 1. Obtenemos tanto el path param (useParams) como el query param (useLocation)
     const { id: routeId } = useParams()
+    const dispatch = useDispatch()
     const location = useLocation()
     const queryParams = new URLSearchParams(location.search)
 
@@ -59,6 +61,13 @@ const ProtectedMinimalLayout = () => {
                 // Para Canvas/Chatbot se permite si is_admin === true o login_automate === true
                 if (data.is_admin === true || data.login_automate === true) {
                     setAuthorized(true)
+                    dispatch({
+                        type: 'SET_ADMIN_STATE',
+                        payload: {
+                            is_admin: data.is_admin,
+                            login_automate: data.login_automate
+                        }
+                    })
                 } else {
                     setAuthorized(false)
                 }
