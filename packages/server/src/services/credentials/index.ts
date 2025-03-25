@@ -11,6 +11,7 @@ const createCredential = async (requestBody: any) => {
     try {
         const appServer = getRunningExpressApp()
         const newCredential = await transformToCredentialEntity(requestBody)
+        newCredential.userUid = requestBody.userUid || ''
         const credential = await appServer.AppDataSource.getRepository(Credential).create(newCredential)
         const dbResponse = await appServer.AppDataSource.getRepository(Credential).save(credential)
         return dbResponse
@@ -22,7 +23,6 @@ const createCredential = async (requestBody: any) => {
     }
 }
 
-// Delete all credentials from chatflowid
 const deleteCredentials = async (credentialId: string): Promise<any> => {
     try {
         const appServer = getRunningExpressApp()
@@ -82,7 +82,7 @@ const getCredentialById = async (credentialId: string): Promise<any> => {
         if (!credential) {
             throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
         }
-        // Decrpyt credentialData
+        // Decrypt credentialData
         const decryptedCredentialData = await decryptCredentialData(
             credential.encryptedData,
             credential.credentialName,
@@ -125,37 +125,27 @@ const updateCredential = async (credentialId: string, requestBody: any): Promise
     }
 }
 
-
-const getAllCredentialsForUser = async (paramCredentialName:any, userUid:any) => {
-  try {
-      const appServer = getRunningExpressApp()
-      let dbResponse = []
-
-      // Filtrar por credentialName & userUid
-      if (!paramCredentialName) {
-          // si no se pasa credentialName, trae todas las cred del user
-          dbResponse = await appServer.AppDataSource
-              .getRepository(Credential)
-              .findBy({ userUid })
-      } else {
-          // si se pasa credentialName
-          dbResponse = await appServer.AppDataSource
-              .getRepository(Credential)
-              .findBy({
-                  credentialName: paramCredentialName,
-                  userUid
-              })
-      }
-
-      return dbResponse
-  } catch (error) {
-      throw new InternalFlowiseError(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          `Error: credentialsService.getAllCredentialsForUser - ${getErrorMessage(error)}`
-      )
-  }
+const getAllCredentialsForUser = async (paramCredentialName: any, userUid: any) => {
+    try {
+        const appServer = getRunningExpressApp()
+        let dbResponse = []
+        // Filtrar por credentialName & userUid
+        if (!paramCredentialName) {
+            dbResponse = await appServer.AppDataSource.getRepository(Credential).findBy({ userUid })
+        } else {
+            dbResponse = await appServer.AppDataSource.getRepository(Credential).findBy({
+                credentialName: paramCredentialName,
+                userUid
+            })
+        }
+        return dbResponse
+    } catch (error) {
+        throw new InternalFlowiseError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            `Error: credentialsService.getAllCredentialsForUser - ${getErrorMessage(error)}`
+        )
+    }
 }
-
 
 export default {
     createCredential,
