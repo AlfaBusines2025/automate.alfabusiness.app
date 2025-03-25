@@ -60,7 +60,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
     // Se leen los flags de admin desde Redux.
     // Según la lógica: isAdmin === true → superadmin; isAdmin === false && loginAutomate === true → admin.
     const { isAdmin, loginAutomate } = useSelector((state) => state.admin)
-    console.log('cgl: AddEditCredentialDialog - isAdmin:', isAdmin, 'loginAutomate:', loginAutomate)
+    //console.log('cgl: AddEditCredentialDialog - isAdmin:', isAdmin, 'loginAutomate:', loginAutomate)
 
     useEffect(() => {
         if (getSpecificCredentialApi.data) {
@@ -98,13 +98,13 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
 
     useEffect(() => {
         if (dialogProps.type === 'EDIT' && dialogProps.data) {
-            console.log('cgl: EDIT from dashboard, requesting credential id:', dialogProps.data.id)
+            //console.log('cgl: EDIT from dashboard, requesting credential id:', dialogProps.data.id)
             getSpecificCredentialApi.request(dialogProps.data.id)
         } else if (dialogProps.type === 'EDIT' && dialogProps.credentialId) {
-            console.log('cgl: EDIT from canvas, requesting credential id:', dialogProps.credentialId)
+            //console.log('cgl: EDIT from canvas, requesting credential id:', dialogProps.credentialId)
             getSpecificCredentialApi.request(dialogProps.credentialId)
         } else if (dialogProps.type === 'ADD' && dialogProps.credentialComponent) {
-            console.log('cgl: ADD new credential; resetting fields')
+            //console.log('cgl: ADD new credential; resetting fields')
             setName('')
             setCredential({})
             const defaultCredentialData = initializeDefaultNodeData(dialogProps.credentialComponent.inputs)
@@ -128,25 +128,25 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                 credentialName: componentCredential.name,
                 plainDataObj: credentialData
             }
-            console.log('cgl: addNewCredential - initial obj:', obj)
+            //console.log('cgl: addNewCredential - initial obj:', obj)
 
             // Si el usuario NO es superadmin (es decir, isAdmin es false y loginAutomate es true),
             // se asocia el valor de la cookie "userUid".
             if (!isAdmin && loginAutomate) {
                 const userUidValue = getCookie('userUid')
-                console.log('cgl: addNewCredential - userUidValue from cookie:', userUidValue)
+                //console.log('cgl: addNewCredential - userUidValue from cookie:', userUidValue)
                 if (userUidValue) {
                     obj.userUid = userUidValue
-                    console.log('cgl: addNewCredential - obj actualizado con userUid:', obj)
+                    //console.log('cgl: addNewCredential - obj actualizado con userUid:', obj)
                 } else {
-                    console.log('cgl: addNewCredential - NO se encontró userUid en cookie')
+                    //console.log('cgl: addNewCredential - NO se encontró userUid en cookie')
                 }
             } else {
-                console.log('cgl: addNewCredential - usuario es superadmin, no asigna userUid')
+                //console.log('cgl: addNewCredential - usuario es superadmin, no asigna userUid')
             }
 
             const createResp = await credentialsApi.createCredential(obj)
-            console.log('cgl: addNewCredential - respuesta del API:', createResp)
+            //console.log('cgl: addNewCredential - respuesta del API:', createResp)
             if (createResp.data) {
                 enqueueSnackbar({
                     message: 'New Credential added',
@@ -163,7 +163,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                 onConfirm(createResp.data.id)
             }
         } catch (error) {
-            console.error('cgl: addNewCredential - error:', error)
+            //console.error('cgl: addNewCredential - error:', error)
             if (setError) setError(error)
             enqueueSnackbar({
                 message: `Failed to add new Credential: ${
@@ -216,7 +216,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                 onConfirm(saveResp.data.id)
             }
         } catch (error) {
-            console.error('cgl: saveCredential - error:', error)
+            //console.error('cgl: saveCredential - error:', error)
             if (setError) setError(error)
             enqueueSnackbar({
                 message: `Failed to save Credential: ${
