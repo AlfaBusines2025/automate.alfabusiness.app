@@ -34,7 +34,7 @@ const StyledPopper = styled(Popper)({
     }
 })
 
-// Esta función ya existía: llama al node-load-method
+// --- Función para llamar al endpoint de node-load-method (usado cuando no hay credentialNames) ---
 const fetchList = async ({ name, nodeData }) => {
     const loadMethod = nodeData.inputParams.find((param) => param.name === name)?.loadMethod
     const username = localStorage.getItem('username')
@@ -58,16 +58,11 @@ const fetchList = async ({ name, nodeData }) => {
     return lists || []
 }
 
-// NUEVO: si es admin, usa la existente getCredentialsByName
+// --- Función para admin: obtener TODAS las credenciales (por componente) ---
 const fetchCredentialListAdmin = async (credentialNames) => {
     try {
-        let names = ''
-        if (credentialNames.length > 1) {
-            names = credentialNames.join('&credentialName=')
-        } else {
-            names = credentialNames[0]
-        }
-        const resp = await credentialsApi.getCredentialsByName(names) // dev: /credentials?credentialName=...
+        let names = credentialNames.length > 1 ? credentialNames.join('&credentialName=') : credentialNames[0]
+        const resp = await credentialsApi.getCredentialsByName(names)
         if (resp?.data) {
             const returnList = []
             for (let i = 0; i < resp.data.length; i++) {
@@ -84,18 +79,12 @@ const fetchCredentialListAdmin = async (credentialNames) => {
     return []
 }
 
-// NUEVO: si NO es admin, llama a getCredentialsByNameForUser
+// --- Función para usuario no admin: obtener solo las credenciales propias ---
 const fetchCredentialListForUser = async (credentialNames, userUid) => {
     try {
-        let names = ''
-        if (credentialNames.length > 1) {
-            names = credentialNames.join('&credentialName=')
-        } else {
-            names = credentialNames[0]
-        }
-        // llama a tu nuevo endpoint
+        let names = credentialNames.length > 1 ? credentialNames.join('&credentialName=') : credentialNames[0]
+        // Llama a tu endpoint que filtra por userUid:
         const resp = await credentialsApi.getCredentialsByNameForUser(names, userUid)
-        //  (ej: GET /credentials/user?credentialName=names&userUid=???)
         if (resp?.data) {
             const returnList = []
             for (let i = 0; i < resp.data.length; i++) {
@@ -124,9 +113,7 @@ export const AsyncDropdown = ({
     freeSolo = false,
     disableClearable = false
 }) => {
-    // ----------------------------------------------------------------
-    // 1. Leemos customization (modo oscuro) y si esAdmin
-    // ----------------------------------------------------------------
+    // 1. Leemos customization (modo oscuro) y el estado isAdmin desde Redux
     const customization = useSelector((state) => state.customization)
     const { isAdmin } = useSelector((state) => state.admin)
 
@@ -140,46 +127,42 @@ export const AsyncDropdown = ({
 
     let [internalValue, setInternalValue] = useState(value ?? 'choose an option')
 
-    // ----------------------------------------------------------------
-    // 3. useEffect principal, recarga si isAdmin cambia
-    // ----------------------------------------------------------------
-    useEffect(() => {
-        setLoading(true)
-        ;(async () => {
-            let response = []
-
-            // A) Si el nodo usa credenciales
-            if (credentialNames.length > 0) {
-                if (isAdmin) {
-                    // Admin => obtener TODAS las credenciales
-                    response = await fetchCredentialListAdmin(credentialNames)
+    // 3. useEffect para cargar opciones
+    useEffect(
+        () => {
+            setLoading(true)
+            ;(async () => {
+                let response = []
+                if (credentialNames.length > 0) {
+                    // Si se definen credenciales, incluimos isAdmin en la lógica
+                    if (isAdmin) {
+                        response = await fetchCredentialListAdmin(credentialNames)
+                    } else {
+                        const userUidRaw = getCookie('userUid')
+                        const userUid = !userUidRaw || userUidRaw === 'null' ? '' : userUidRaw
+                        response = await fetchCredentialListForUser(credentialNames, userUid)
+                    }
                 } else {
-                    // No admin => obtener SOLO credenciales de user
-                    const userUidRaw = getCookie('userUid')
-                    const userUid = !userUidRaw || userUidRaw === 'null' ? '' : userUidRaw
-
-                    response = await fetchCredentialListForUser(credentialNames, userUid)
+                    // Si no se definen credentialNames, se llama a fetchList (como en la versión original)
+                    response = await fetchList({ name, nodeData })
                 }
-            }
-            // B) Si NO hay credenciales => node-load-method normal
-            else {
-                response = await fetchList({ name, nodeData })
-            }
 
-            // "Create New" al final si corresponde
-            if (isCreateNewOption) {
-                setOptions([...response, ...addNewOption])
-            } else {
-                setOptions([...response])
-            }
+                if (isCreateNewOption) {
+                    setOptions([...response, ...addNewOption])
+                } else {
+                    setOptions([...response])
+                }
+                setLoading(false)
+            })()
+            // Dependencias:
+            // Si se definen credentialNames, incluimos isAdmin; de lo contrario, usamos las dependencias originales.
+        },
+        credentialNames && credentialNames.length > 0
+            ? [credentialNames, nodeData, name, isCreateNewOption, isAdmin]
+            : [nodeData, name, isCreateNewOption]
+    )
 
-            setLoading(false)
-        })()
-    }, [isAdmin, credentialNames, nodeData, name, isCreateNewOption])
-
-    // ----------------------------------------------------------------
-    // 4. Render
-    // ----------------------------------------------------------------
+    // 4. Render del componente
     return (
         <>
             <Autocomplete
