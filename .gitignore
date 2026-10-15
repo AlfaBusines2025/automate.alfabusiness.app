@@ -1,0 +1,142 @@
+# editor
+.idea
+.vscode
+
+# dependencies
+**/node_modules
+**/package-lock.json
+**/yarn.lock
+
+## logs
+**/logs
+**/*.log
+
+## pnpm
+.pnpm-store/
+
+## build
+**/dist
+**/build
+
+## temp
+**/tmp
+**/temp
+
+## test
+**/coverage
+
+# misc
+.DS_Store
+
+## env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
+
+## turbo
+.turbo
+
+## secrets
+**/*.key
+**/api.json
+
+## uploads
+**/uploads
+
+## compressed
+**/*.tgz
+
+## vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+## other keys
+*.key
+*.keys
+*.priv
+*.rsa
+*.key.json
+
+## ssh keys
+*.ssh
+*.ssh-key
+.key-mrc
+
+## Certificate Authority
+*.ca
+
+## Certificate
+*.crt
+
+## Certificate Sign Request
+*.csr
+
+## Certificate
+*.der 
+
+## Key database file
+*.kdb
+
+## OSCP request data
+*.org
+
+## PKCS #12
+*.p12
+
+## PEM-encoded certificate data
+*.pem
+
+## Random number seed
+*.rnd
+
+## SSLeay data
+*.ssleay
+
+## S/MIME message
+*.smime
+*.vsix
+
+# --- alfa-github-mirror (do not remove) ---
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+build/
+.cache/
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.fleet/
+.cursor/
+*.pem
+*.p12
+*.key
+id_rsa
+id_rsa.pub
+*.sqlite
+*.sql.gz
+*.zip
+database.sqlite
+encryption.key
+uploads/
+.flowise/
+_backups/
+backups/
+# PAT often lacks workflow scope — do not push CI workflows from production mirrors
+.github/workflows/
+pnpm-lock.yaml
+packages/*/dist/
+packages/*/node_modules/
